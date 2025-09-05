@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alwina Survey Tally</title>
+    <title>Thesis Survey Tally</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-   <style>
+    <style>
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -52,23 +52,82 @@
             border-radius: 8px;
             border: 1px solid #374151;
         }
+
+        /* Print-specific styles */
+        @media print {
+            body {
+                background-color: #fff;
+                color: #000;
+            }
+
+            .dark-gradient {
+                background: none;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            th,
+            td {
+                color: #000 !important;
+            }
+
+            .input-section,
+            .print-btn-container {
+                display: none;
+            }
+
+            .glow-shadow,
+            .dark-gradient,
+            .bg-gray-800,
+            .bg-gray-900,
+            .bg-gray-700,
+            .border-gray-700 {
+                box-shadow: none;
+                background-color: transparent;
+                border: none;
+            }
+
+            canvas {
+                border: 1px solid #000;
+                background-color: #fff;
+            }
+
+            .modal {
+                display: none !important;
+            }
+
+            .result-column,
+            .crosstab-column {
+                break-inside: avoid;
+            }
+
+            table {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 4px;
+                border: 1px solid #ccc;
+            }
+        }
     </style>
 </head>
 
 <body class="bg-gray-900 text-gray-200 p-4 sm:p-8">
 
     <div class="max-w-7xl mx-auto dark-gradient rounded-3xl p-6 sm:p-10 border border-gray-700">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-6 sm:mb-10 text-white">Alwina Survey Tally
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-6 sm:mb-10 text-white">Thesis Survey Tally
         </h1>
 
-        <!-- Input Section -->
-        <div class="bg-gray-800 p-6 rounded-2xl shadow-xl mb-8 border border-gray-700">
-            <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-center"> Input</h2>
+        <div class="input-section bg-gray-800 p-6 rounded-2xl shadow-xl mb-8 border border-gray-700">
+            <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-center">Data Input</h2>
 
             <div class="mb-6">
                 <h3 class="text-lg font-medium mb-4 text-center">Select Question:</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="questionSelector">
-                    <!-- Populated dynamically by JavaScript -->
                 </div>
             </div>
 
@@ -116,10 +175,14 @@
             </div>
         </div>
 
-        <!-- Tally Chart Section -->
-     
+        <div class="print-btn-container flex justify-center mb-8">
+            <button id="printPdfBtn"
+                class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-colors duration-200">
+                Print as PDF
+            </button>
+        </div>
 
-        <!-- Results Section -->
+
         <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Respondent-wise Summary</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="result-column bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-700">
@@ -169,7 +232,6 @@
             </div>
         </div>
 
-        <!-- Crosstabulation Section -->
         <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Crosstabulation</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="crosstab-column bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-700">
@@ -237,7 +299,6 @@
             <p>Example: If Staff responses for Question 1.1 are [3, 4, 5], then Mean = (3 + 4 + 5) / 3 = 4.00</p>
         </div>
 
-        <!-- Variable Summary Section -->
         <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-white">Variable Summary</h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-700">
@@ -303,7 +364,6 @@
         </div>
     </div>
 
-    <!-- The custom modal for clearing data -->
     <div id="clearDataModal" class="modal">
         <div class="modal-content">
             <p class="text-white text-lg mb-4">Are you sure you want to clear all responses?</p>
@@ -411,8 +471,8 @@
             localStorage.removeItem('surveyResponses');
             selectedType = null;
             selectedQuestion = null;
-            document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.question-btn').forEach(btn => btn.classList.remove('selected', 'glow-shadow'));
+            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('selected', 'glow-shadow'));
             document.getElementById('error').textContent = '';
             updateResults();
             document.getElementById('clearDataModal').style.display = 'none';
@@ -525,10 +585,11 @@
                 tbody.innerHTML = '';
                 Object.keys(questions).forEach(category => {
                     Object.entries(questions[category]).forEach(([q, text]) => {
-                        const total = responses[type][q].length;
+                        const scores = responses[type][q];
+                        const total = scores.length;
                         // Calculate mean score for each question
                         const mean = total > 0
-                            ? (responses[type][q].reduce((sum, val) => sum + val, 0) / total).toFixed(2)
+                            ? (scores.reduce((sum, val) => sum + val, 0) / total).toFixed(2)
                             : '0.00';
                         const row = document.createElement('tr');
                         row.className = 'border-b border-gray-700 last:border-0 hover:bg-gray-700';
@@ -684,6 +745,11 @@
             document.getElementById('clearDataBtn').addEventListener('click', showClearDataModal);
             document.getElementById('modalYes').addEventListener('click', clearAllData);
             document.getElementById('modalNo').addEventListener('click', hideClearDataModal);
+
+            // Handle print button
+            document.getElementById('printPdfBtn').addEventListener('click', () => {
+                window.print();
+            });
 
             // Initialize results and chart on page load
             updateResults();
